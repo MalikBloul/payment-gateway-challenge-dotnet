@@ -2,10 +2,14 @@
 
 public class PostPaymentRequest
 {
-    public int CardNumberLastFour { get; set; }
-    public int ExpiryMonth { get; set; }
-    public int ExpiryYear { get; set; }
-    public string Currency { get; set; }
-    public int Amount { get; set; }
-    public int Cvv { get; set; }
+    public required string CardNumber { get; set; }
+    public required int ExpiryMonth { get; set; }
+    public required int ExpiryYear { get; set; }
+    public required string Currency { get; set; }
+    public required int Amount { get; set; }
+    public required int Cvv { get; set; }
+    internal string GetLast4()
+        => CardNumber.Length >= 4 
+            ? CardNumber[^4..]
+            : CardNumber;
 }
