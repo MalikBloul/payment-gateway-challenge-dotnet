@@ -26,6 +26,10 @@ This is a payment gateway API built in ASP.NET Core that allows merchants to pro
 - Most Happy paths were integration tested. With a single BadRequest path checked also to make sure the validation was wired up.
 - Chose to keep unit tests pretty basic, testing most of the scenarios could think of in terms of validation based on the spec. Opted to put this in unit tests rather than integration as running all these scenarios in an integration test could stack up quickly.
 
+## Observability
+- Opted for simple logging using `ILogger`, for simplicity.
+- Made sure no PII in logs
+
 # Future Directions
 ## Testing
 - Validate the entire response body in integration tests to make sure fields are persisted and returned correctly.
@@ -48,3 +52,9 @@ retrieve any payment by ID which would be a serious issue in production.
 - Move a bit of the heavy orchestration logic out of the controller to keep it thin.
 - Move the create payment into a service class that handles the whole flow and returns a `Result<T>` object to help with isolating the business logic to a more of a `UseCases`/`Application` layer.
 - Add feature slices to make it a bit easier for a new developer to see what the project is about.
+
+## Observability
+- Back the existing `ILogger` calls with something like Serilog as a provider, adding enrichers for things like 
+trace IDs and merchant context, and routing to a proper sink rather than stdout only.
+- Would use OpenTelemetry with an OTLP exporter to ship traces, metrics and logs to a collector, giving better correlated observability.
+- Would also ensure proper request -> response logging using middleware, ensuring that logs get stripped of PII and sensitive data like card details, auth tokens/keys etc.

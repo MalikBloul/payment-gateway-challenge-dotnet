@@ -99,7 +99,7 @@ public class AcquirerServiceTests
         // Arrange
         var handler = new TimeoutHttpMessageHandler();
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://acquirer.test/") };
-        var service = new AcquirerService(httpClient);
+        var service = new AcquirerService(httpClient, new FakeLogger<AcquirerService>());
 
         // Act
         var result = await service.AuthorizeAsync(ValidRequest(), CancellationToken.None);
@@ -112,7 +112,7 @@ public class AcquirerServiceTests
     {
         var handler = new MockHttpMessageHandler(response);
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://acquirer.test/") };
-        return new AcquirerService(httpClient);
+        return new AcquirerService(httpClient, new FakeLogger<AcquirerService>());
     }
 
     private static AuthorisationRequest ValidRequest() => new()

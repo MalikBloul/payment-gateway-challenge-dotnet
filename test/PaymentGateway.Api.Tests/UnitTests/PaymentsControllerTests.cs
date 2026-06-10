@@ -107,7 +107,8 @@ public class PaymentsControllerCreateTests
         var repository = new PaymentsRepository();
         var acquirer = new FakeAcquirerService(outcome);
         var validator = new FakeValidator();
-        return new PaymentsController(repository, acquirer, validator);
+        var logger = new FakeLogger<PaymentsController>();
+        return new PaymentsController(repository, acquirer, validator, logger);
     }
 
     private static PaymentsController CreateController(
@@ -116,7 +117,8 @@ public class PaymentsControllerCreateTests
     {
         var acquirer = new FakeAcquirerService(outcome);
         var validator = new FakeValidator();
-        return new PaymentsController(repository, acquirer, validator);
+        var logger = new FakeLogger<PaymentsController>();
+        return new PaymentsController(repository, acquirer, validator, logger);
     }
 }
 

@@ -12,17 +12,19 @@ public interface IAcquirerService
 public class AcquirerService : IAcquirerService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger _logger;
 
-    public AcquirerService(HttpClient httpClient)
+    public AcquirerService(HttpClient httpClient, ILogger<AcquirerService> logger)
     {
         _httpClient = httpClient;
+        _logger = logger;
     }
 
     public async Task<AuthorisationOutcome> AuthorizeAsync(AuthorisationRequest request, CancellationToken cancellationToken)
     {
+        const string requestPath = "payments";
         try
         {
-            const string requestPath = "payments";
             using var response = await _httpClient.PostAsJsonAsync(requestPath, request);
 
             if (!response.IsSuccessStatusCode)
@@ -43,7 +45,13 @@ public class AcquirerService : IAcquirerService
         }
         catch(TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
+            _logger.LogWarning("Timeout occured while trying to contact acquirer at {Path}", requestPath);
             return AuthorisationOutcome.Failed;
+        } 
+        catch(Exception ex)
+        {
+            _logger.LogError(ex, "Error occured with request to {RequestPath} Error: {ErrorMessage}", requestPath, ex.Message);
+            throw;
         }
     }
 }

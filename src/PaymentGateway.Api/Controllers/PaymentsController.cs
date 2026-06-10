@@ -16,12 +16,17 @@ public class PaymentsController : Controller
     private readonly PaymentsRepository _paymentsRepository;
     private readonly IAcquirerService _acquirerService;
     private readonly IValidator<PostPaymentRequest> _postPaymentRequestValidator;
+    private readonly ILogger _logger;
 
-    public PaymentsController(PaymentsRepository paymentsRepository, IAcquirerService acquirerService, IValidator<PostPaymentRequest> postPaymentRequestValidator)
+    public PaymentsController(PaymentsRepository paymentsRepository,
+        IAcquirerService acquirerService,
+        IValidator<PostPaymentRequest> postPaymentRequestValidator,
+        ILogger<PaymentsController> logger)
     {
         _paymentsRepository = paymentsRepository;
         _acquirerService = acquirerService;
         _postPaymentRequestValidator = postPaymentRequestValidator;
+        _logger = logger;
     }
 
     [HttpGet("{id:guid}")]
@@ -54,10 +59,16 @@ public class PaymentsController : Controller
         var authorisationOutcome = await _acquirerService.AuthorizeAsync(authorisationRequest, cancellationToken);
 
         if (authorisationOutcome == Models.AuthorisationOutcome.Failed)
+        {
+            _logger.LogWarning("Payment authorisation failed for request with currency {Currency} and amount {Amount}", request.Currency, request.Amount);
             return StatusCode(503, "Payment service temporarily unavailable. Please retry.");
+        }
 
         if (authorisationOutcome == Models.AuthorisationOutcome.Rejected)
+        {
+            _logger.LogWarning("Payment authorisation was rejected for request with currency {Currency} and amount {Amount}", request.Currency, request.Amount);
             return BadRequest("Card details are invalid, please check the card details and retry request");
+        }
 
         var response = new PostPaymentResponse
         {
@@ -73,7 +84,7 @@ public class PaymentsController : Controller
         };
         
         _paymentsRepository.Add(response);
-
+        _logger.LogInformation("Payment with Id: {PaymentId} was saved with Status: { PaymentStatus }", response.Id, response.Status);
         return Ok(response);
     }
 }
